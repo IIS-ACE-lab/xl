@@ -50,11 +50,11 @@ class BW3_opt
 
  public:
 
-   template <unsigned WIDTH_M, unsigned m, unsigned n, unsigned w,
+   template <unsigned WIDTH_M, unsigned m, unsigned n,
              unsigned num_var, unsigned nsol, class orig_sys,
              unsigned deg_poly, unsigned deg_ai>
    static double bw_3(matrix<num_var, nsol> &sol, matrix_polynomial<n, m+n, deg_poly> &min_poly,
-         sparse_matrix<n, m, w> &z, matrix_array<m, n, deg_ai> &ai, orig_sys &sys)
+         matrix<n, m> &z, matrix_array<m, n, deg_ai> &ai, orig_sys &sys)
    {
        ECHO("BW_3 OPT\n");
    
@@ -95,9 +95,9 @@ class BW3_opt
        Bz0.set_zero();
    
        // copy top part of sparse z to Bz0 *transposed*
-       for (unsigned i = 0; i < m; i++)
-          for (unsigned j = 0; j < z.w; j++)
-             Bz0.L[z.idx[i*z.w + j]].set(i, z.val[i].get(j) );
+       for (unsigned i = 0; i < n; i++)
+          for (unsigned j = 0; j < m; j++)
+             Bz0.L[i].set(j, z.L[j][i]);
    
    
        ECHO("min_poly.deg: %i\n", min_poly.deg);

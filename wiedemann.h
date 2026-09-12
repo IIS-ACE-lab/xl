@@ -42,7 +42,7 @@ class BW
    BW(Options *options) : options(options) {}
 
    template <unsigned m, unsigned n, unsigned deg>
-   void bw1_read(sparse_matrix<n, m, Z_ROW_WEIGHT> &z_sp, 
+   void bw1_read(matrix<n, m> &z_sp, 
          matrix_array<m, n, deg> &ai)
    {
       FILE *fd = NULL;
@@ -82,7 +82,7 @@ class BW
    }
 
    template <unsigned m, unsigned n, unsigned deg>
-   void bw1_write(sparse_matrix<n, m, Z_ROW_WEIGHT> &z_sp, 
+   void bw1_write(matrix<n, m> &z_sp, 
          matrix_array<m, n, deg> &ai)
    {
       FILE *fd = NULL;
@@ -107,7 +107,7 @@ class BW
    }
 
    template <unsigned n, unsigned m, unsigned deg_poly, unsigned deg_ai>
-   void bm_read(sparse_matrix<n, m, Z_ROW_WEIGHT> &z_sp, 
+   void bm_read(matrix<n, m> &z_sp, 
          matrix_polynomial<n, m+n, deg_poly> &min_poly,
          matrix_array<m, n, deg_ai> &ai)
    {
@@ -134,7 +134,7 @@ class BW
    }
 
    template <unsigned n, unsigned m, unsigned deg_poly, unsigned deg_ai>
-   void bm_write(sparse_matrix<n, m, Z_ROW_WEIGHT> &z_sp, 
+   void bm_write(matrix<n, m> &z_sp, 
          matrix_polynomial<n, m+n, deg_poly> &min_poly,
          matrix_array<m, n, deg_ai> &ai)
    {
@@ -170,11 +170,10 @@ class BW
       ECHO("m = %u, n = %u\n", m, n);
       ECHO("dimension: %u\n", Mac::width);
       ECHO("weight/row: %.3lf\n", (double)M.num_entries()/Mac::width);
-      ECHO("Z_ROW_WEIGHT: %i\n", Z_ROW_WEIGHT);
 
       static const unsigned num_iter = Mac::width/m + Mac::width/n + 8;
 
-      typedef sparse_matrix<n, m, Z_ROW_WEIGHT> z_sp_t;
+      typedef matrix<n, m> z_sp_t;
 
       boost::scoped_ptr<z_sp_t> z_sp(new z_sp_t);
       z_sp->rand();
