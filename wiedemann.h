@@ -41,8 +41,8 @@ class BW
 
    BW(Options *options) : options(options) {}
 
-   template <unsigned m, unsigned n, unsigned N, unsigned deg>
-   void bw1_read(sparse_matrix<n, N, Z_ROW_WEIGHT> &z_sp, 
+   template <unsigned m, unsigned n, unsigned deg>
+   void bw1_read(sparse_matrix<n, m, Z_ROW_WEIGHT> &z_sp, 
          matrix_array<m, n, deg> &ai)
    {
       FILE *fd = NULL;
@@ -81,8 +81,8 @@ class BW
 #endif // #ifdef OPEN_MPI
    }
 
-   template <unsigned m, unsigned n, unsigned N, unsigned deg>
-   void bw1_write(sparse_matrix<n, N, Z_ROW_WEIGHT> &z_sp, 
+   template <unsigned m, unsigned n, unsigned deg>
+   void bw1_write(sparse_matrix<n, m, Z_ROW_WEIGHT> &z_sp, 
          matrix_array<m, n, deg> &ai)
    {
       FILE *fd = NULL;
@@ -106,8 +106,8 @@ class BW
       }
    }
 
-   template <unsigned n, unsigned N, unsigned m, unsigned deg_poly, unsigned deg_ai>
-   void bm_read(sparse_matrix<n, N, Z_ROW_WEIGHT> &z_sp, 
+   template <unsigned n, unsigned m, unsigned deg_poly, unsigned deg_ai>
+   void bm_read(sparse_matrix<n, m, Z_ROW_WEIGHT> &z_sp, 
          matrix_polynomial<n, m+n, deg_poly> &min_poly,
          matrix_array<m, n, deg_ai> &ai)
    {
@@ -133,8 +133,8 @@ class BW
       }
    }
 
-   template <unsigned n, unsigned N, unsigned m, unsigned deg_poly, unsigned deg_ai>
-   void bm_write(sparse_matrix<n, N, Z_ROW_WEIGHT> &z_sp, 
+   template <unsigned n, unsigned m, unsigned deg_poly, unsigned deg_ai>
+   void bm_write(sparse_matrix<n, m, Z_ROW_WEIGHT> &z_sp, 
          matrix_polynomial<n, m+n, deg_poly> &min_poly,
          matrix_array<m, n, deg_ai> &ai)
    {
@@ -174,7 +174,7 @@ class BW
 
       static const unsigned num_iter = Mac::width/m + Mac::width/n + 8;
 
-      typedef sparse_matrix<n, Mac::width, Z_ROW_WEIGHT> z_sp_t;
+      typedef sparse_matrix<n, m, Z_ROW_WEIGHT> z_sp_t;
 
       boost::scoped_ptr<z_sp_t> z_sp(new z_sp_t);
       z_sp->rand();
@@ -194,7 +194,7 @@ class BW
 
 
       if (options->bw1_run)
-			BW1::template bw_1(*ai, num_iter, M, *z_sp);
+          BW1::template bw_1(*ai, num_iter, M, *z_sp);
 
 
       if (options->bw1 == OP_BW1_WRITE)

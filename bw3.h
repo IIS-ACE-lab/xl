@@ -54,7 +54,7 @@ class BW3_opt
              unsigned num_var, unsigned nsol, class orig_sys,
              unsigned deg_poly, unsigned deg_ai>
    static double bw_3(matrix<num_var, nsol> &sol, matrix_polynomial<n, m+n, deg_poly> &min_poly,
-         sparse_matrix<n, WIDTH_M, w> &z, matrix_array<m, n, deg_ai> &ai, orig_sys &sys)
+         sparse_matrix<n, m, w> &z, matrix_array<m, n, deg_ai> &ai, orig_sys &sys)
    {
        ECHO("BW_3 OPT\n");
    

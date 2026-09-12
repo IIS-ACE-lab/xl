@@ -98,10 +98,12 @@ class BW1 : BW1_base
 
 	public:
 
-   template <unsigned m, unsigned n, unsigned N, unsigned w, class Mac, unsigned deg_ai>
+   template <unsigned m, unsigned n, unsigned w, class Mac, unsigned deg_ai>
    static double bw_1(matrix_array<m, n, deg_ai> &ai , const unsigned num_iter, 
-           Mac &B, const sparse_matrix<n, N, w> &z_sp)
+           Mac &B, const sparse_matrix<n, m, w> &z_sp)
    {
+       const unsigned N = Mac::width;
+
        ECHO("BW_1 no mpi\n");
    
        void *map[2];
@@ -129,8 +131,10 @@ class BW1 : BW1_base
               ai_tr->L[r].set_zero();
 #endif
    
-       z_sp.dense_copy(*BiyOld);
-   
+       z_sp.dense_copy((matrix<n, m>&) *BiyOld);
+       for (unsigned r = m; r < N; r++)
+         BiyOld->L[r].rand();   
+
        uint64_t num_mults = 0;
    
        double t_sp = 0;
@@ -188,14 +192,15 @@ class BW1_mpi_size_blocks : BW1_base
 
 	public:
 
-   template <unsigned m, unsigned n, unsigned N, unsigned w, class Mac, unsigned deg_ai>
+   template <unsigned m, unsigned n, unsigned w, class Mac, unsigned deg_ai>
    static double bw_1(matrix_array<m, n, deg_ai> &ai , const unsigned num_iter, 
-           Mac &B, const sparse_matrix<n, N, w> &z_sp)
+           Mac &B, const sparse_matrix<n, m, w> &z_sp)
    {
        ECHO("BW_1 mpi_size blocks mpi\n");
        
        void *map[2];
-   
+    
+       const unsigned N = Mac::width;
        const unsigned int n_mpi = n / MPI_SIZE;
    
        for (int i = 0; i < 2; i++)
@@ -206,7 +211,7 @@ class BW1_mpi_size_blocks : BW1_base
    
        BiyOld->set_zero();
    
-       for(unsigned i = 0; i < N; i++)
+       for(unsigned i = 0; i < m; i++)
            for(unsigned j = 0; j < z_sp.w; j++)
                if (((mpi_rank*n_mpi) <= z_sp.idx[i*z_sp.w+j]) &&
                        (z_sp.idx[i*z_sp.w+j] < ((mpi_rank+1)*n_mpi)))
@@ -214,7 +219,10 @@ class BW1_mpi_size_blocks : BW1_base
                            i,
                            z_sp.idx[i*z_sp.w+j] - (mpi_rank*n_mpi),
                            z_sp.val[i][j] );
-   
+      
+       for (unsigned r = m; r < N; r++)
+         BiyOld->L[r].rand();   
+
        matrix<n_mpi, m> *ai_tr;
        ai_tr = new matrix<n_mpi, m>[MPI_SIZE*(num_iter+2)];
    
@@ -282,12 +290,13 @@ class BW1_two_blocks_ibv : BW1_base
 
    public:
 
-   template <unsigned m, unsigned n, unsigned N, unsigned w, class Mac, unsigned deg_ai>
+   template <unsigned m, unsigned n, unsigned w, class Mac, unsigned deg_ai>
    static double bw_1(matrix_array<m, n, deg_ai> &ai , const unsigned num_iter, 
-           Mac &B, const sparse_matrix<n, N, w> &z_sp)
+           Mac &B, const sparse_matrix<n, m, w> &z_sp)
    {
       ECHO("BW_1 two blocks mpi\n");
 
+      const unsigned N = Mac::width;
       const uint32_t n_mpi = n >> 1;
 
       ibv_buffer<matrix<n_mpi, N> > *map = 
@@ -308,7 +317,7 @@ class BW1_two_blocks_ibv : BW1_base
       BiyOld[0]->set_zero();
       BiyOld[1]->set_zero();
 
-      for(unsigned i = 0; i < N; i++)
+      for(unsigned i = 0; i < m; i++)
          for(unsigned j = 0; j < z_sp.w; j++)
             if (z_sp.idx[i*z_sp.w+j] < n_mpi)
                BiyOld[0]->set(
@@ -316,6 +325,12 @@ class BW1_two_blocks_ibv : BW1_base
             else
                BiyOld[1]->set(
                      i, z_sp.idx[i*z_sp.w+j] - n_mpi, z_sp.val[i][j] );
+      
+       for (unsigned r = m; r < N; r++)
+       {
+         BiyOld->L[r].rand();   
+         BiyOld->L[r].rand();   
+       }
 
       matrix<n_mpi, m> *ai_tr = new matrix<n_mpi, m>[2];
 
@@ -637,13 +652,14 @@ class BW1_two_blocks : BW1_base
    public:
 
 
-   template <unsigned m, unsigned n, unsigned N, unsigned w, 
+   template <unsigned m, unsigned n, unsigned w, 
             class Mac, unsigned deg_ai>
    static double bw_1(matrix_array<m, n, deg_ai> &ai , const unsigned num_iter, 
-         Mac &B, const sparse_matrix<n, N, w> &z_sp)
+         Mac &B, const sparse_matrix<n, m, w> &z_sp)
    {
       ECHO("BW_1 two blocks mpi\n");
 
+      const unsigned N = Mac::width;
       const uint32_t n_mpi = n >> 1;
 
       matrix<n_mpi, N> *map = 
@@ -661,7 +677,7 @@ class BW1_two_blocks : BW1_base
       BiyOld[0]->set_zero();
       BiyOld[1]->set_zero();
 
-      for(unsigned i = 0; i < N; i++)
+      for(unsigned i = 0; i < m; i++)
          for(unsigned j = 0; j < z_sp.w; j++)
             if (z_sp.idx[i*z_sp.w+j] < n_mpi)
                BiyOld[0]->set(
@@ -669,6 +685,13 @@ class BW1_two_blocks : BW1_base
             else
                BiyOld[1]->set(
                      i, z_sp.idx[i*z_sp.w+j] - n_mpi, z_sp.val[i][j] );
+
+       for (unsigned r = m; r < N; r++)
+       {
+         BiyOld[0]->L[r].rand();   
+         BiyOld[1]->L[r].rand();   
+       }
+
 
       matrix<n_mpi, m> *ai_tr = new matrix<n_mpi, m>[2];
 
@@ -836,12 +859,13 @@ class BW1_one_block : BW1_base
 
 	public:
 
-   template <unsigned m, unsigned n, unsigned N, unsigned w, class Mac, unsigned deg_ai>
+   template <unsigned m, unsigned n, unsigned w, class Mac, unsigned deg_ai>
    static double bw_1(matrix_array<m, n, deg_ai> &ai , const unsigned num_iter, 
-           Mac &B, const sparse_matrix<n, N, w> &z_sp)
+           Mac &B, const sparse_matrix<n, m, w> &z_sp)
    {
        ECHO("BW_1 one block mpi\n");
    
+       const unsigned N = Mac::width;
        void *map[2];
    
        for (int i = 0; i < 2; i++)
@@ -852,7 +876,9 @@ class BW1_one_block : BW1_base
    
        DUMP(sizeof(matrix<n, N>));
    
-       z_sp.dense_copy(*BiyOld);
+       z_sp.dense_copy((matrix<n, m>&) *BiyOld);
+       for (unsigned r = m; r < N; r++)
+         BiyOld->L[r].rand();   
    
        matrix<n, m> *ai_tr = new matrix<n, m>;
    
