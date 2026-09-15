@@ -223,7 +223,7 @@ class BW1_mpi_size_blocks : BW1_base
        matrix<n_mpi, m> ai_tr;
        matrix<m, n_mpi> *ai_part;
 
-       const unsigned chunk_size = 64;
+       const unsigned chunk_size = 128;
        const unsigned nchunks = ((num_iter+2 + (chunk_size-1))/chunk_size);
        ai_part = new matrix<m, n_mpi>[nchunks * chunk_size];
    
@@ -257,8 +257,7 @@ class BW1_mpi_size_blocks : BW1_base
        for (unsigned i = 0; i < nchunks; i++)
        {
          for (unsigned j = 0; j < chunk_size; j++)
-           for (unsigned v = 0; v < n_mpi; v++)
-             buf[mpi_rank][j].L[v] = ai_part[i*chunk_size + j].L[v];
+             buf[mpi_rank][j] = ai_part[i*chunk_size + j];
 
          MPI_Allgather
          (
@@ -277,7 +276,7 @@ class BW1_mpi_size_blocks : BW1_base
            if (i*chunk_size + j < deg_ai)
              for (unsigned r = 0; r < MPI_SIZE; r++)
                for (unsigned v = 0; v < n_mpi; v++)
-                 ai[i*chunk_size + j].L[r*n_mpi + v] = buf[r][j].L[v];
+                 memcpy(&ai[i*chunk_size + j].L[r*n_mpi], buf[r][j].L, sizeof(matrix<m, n_mpi>));
          }
        }
 
