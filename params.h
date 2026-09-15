@@ -18,11 +18,5 @@
    static const unsigned BW_N = BW_M;
    static const unsigned NSOL = 1;
 
-#if QQ == 2
-   static const unsigned X_ROW_WEIGHT = 15;
-#else // #if QQ == 2
-   static const unsigned X_ROW_WEIGHT = 16;
-#endif // #if QQ == 2
-
 #endif
 

@@ -220,20 +220,30 @@ class BW1_mpi_size_blocks : BW1_base
        for (unsigned r = m; r < N; r++)
          BiyOld->L[r].rand();   
 
-       matrix<n_mpi, m> *ai_tr;
-       ai_tr = new matrix<n_mpi, m>[MPI_SIZE*(num_iter+2)];
+       matrix<n_mpi, m> ai_tr;
+       matrix<m, n_mpi> *ai_part;
+
+       const unsigned chunk_size = 64;
+       const unsigned nchunks = ((num_iter+2 + (chunk_size-1))/chunk_size);
+       ai_part = new matrix<m, n_mpi>[nchunks * chunk_size];
    
        double num_mults = 1;
    
        for(unsigned i = 0; i < num_iter + 1; i++) 
        {
-           show_speed_stats(i, num_iter + 2, num_mults,
-                B.num_entries() * n * num_iter);
+           show_speed_stats(i, num_iter + 2, num_mults, B.num_entries() * n * num_iter);
            num_mults += B.num_entries() * n;
    
            sparse_matrix_prod(*BiyNew, B, *BiyOld);
    
-           memcpy(ai_tr[mpi_rank * (num_iter+2) + i].L, BiyOld->L, sizeof(ai_tr[mpi_rank * (num_iter+2) + i].L[0]) * n);
+           memcpy(ai_tr.L, BiyNew->L, sizeof(ai_tr));
+
+#ifdef _OPENMP
+#pragma omp parallel for 
+#endif
+           for(unsigned j = 0; j < n_mpi; j++) 
+             for(unsigned k = 0; k < m; k++) 
+               ai_part[i].L[j].set(k, ai_tr.L[k][j]);
    
            swap(BiyOld, BiyNew);
        }
@@ -241,37 +251,44 @@ class BW1_mpi_size_blocks : BW1_base
        show_speed_stats(1, 0, num_mults, num_mults, "BW1");   
    
        MPI_Barrier(MPI_COMM_WORLD);
-   
-       MPI_Allgather
-           (
-            MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
-            //ai_tr + mpi_rank * (num_iter+2), 
-            //sizeof(matrix<n_mpi, m>) * (num_iter+2), 
-            //MPI_CHAR,
-            ai_tr,
-            sizeof(matrix<n_mpi, m>) * (num_iter+2), 
-            MPI_CHAR,
-            MPI_COMM_WORLD
-           );
-   
-       // transpose
+
+       matrix<m, n_mpi> buf[MPI_SIZE][chunk_size];
+
+       for (unsigned i = 0; i < nchunks; i++)
+       {
+         for (unsigned j = 0; j < chunk_size; j++)
+           for (unsigned v = 0; v < n_mpi; v++)
+             buf[mpi_rank][j].L[v] = ai_part[i*chunk_size + j].L[v];
+
+         MPI_Allgather
+         (
+              MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+              buf[0][0].L,
+              sizeof(matrix<m, n_mpi>) * (chunk_size), 
+              MPI_CHAR,
+              MPI_COMM_WORLD
+         );
+
 #ifdef _OPENMP
 #pragma omp parallel for 
 #endif
-       for(unsigned i = 1; i < num_iter + 1; i++) 
-           for (unsigned rank = 0; rank < MPI_SIZE; rank++)
-               for(unsigned j = 0; j < m; j++)
-                   for(unsigned k = 0; k < n_mpi; k++)
-                       ai[i-1].L[k + rank*n_mpi].set(j, 
-                             ai_tr[rank * (num_iter+2) + i].get(j, k));
-   
+         for (unsigned j = 0; j < chunk_size; j++)
+         {
+           if (i*chunk_size + j < deg_ai)
+             for (unsigned r = 0; r < MPI_SIZE; r++)
+               for (unsigned v = 0; v < n_mpi; v++)
+                 ai[i*chunk_size + j].L[r*n_mpi + v] = buf[r][j].L[v];
+         }
+       }
+
+
        BiyOld->~matrix<n_mpi, N>();
        BiyNew->~matrix<n_mpi, N>();
-   
+
        for (int i = 0; i < 2; i++)
            XL_free(map[i], sizeof(matrix<n_mpi, N>));
    
-       delete [] ai_tr;
+       delete [] ai_part;
    
       return num_mults;
    }
