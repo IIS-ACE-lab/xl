@@ -256,8 +256,12 @@ class BW1_mpi_size_blocks : BW1_base
 
        for (unsigned i = 0; i < nchunks; i++)
        {
-         for (unsigned j = 0; j < chunk_size; j++)
-             buf[mpi_rank][j] = ai_part[i*chunk_size + j];
+         memcpy
+         ( 
+             buf[ mpi_rank ][ 0 ].L, 
+             ai_part[ i*chunk_size ].L, 
+             sizeof(matrix<m, n_mpi>)*chunk_size 
+         );
 
          MPI_Allgather
          (
@@ -275,8 +279,12 @@ class BW1_mpi_size_blocks : BW1_base
          {
            if (i*chunk_size + j < deg_ai)
              for (unsigned r = 0; r < MPI_SIZE; r++)
-               for (unsigned v = 0; v < n_mpi; v++)
-                 memcpy(&ai[i*chunk_size + j].L[r*n_mpi], buf[r][j].L, sizeof(matrix<m, n_mpi>));
+               memcpy
+               (
+                   &ai[i*chunk_size + j].L[r*n_mpi], 
+                   buf[r][j].L, 
+                   sizeof(matrix<m, n_mpi>)
+               );
          }
        }
 
