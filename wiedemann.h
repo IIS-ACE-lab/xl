@@ -204,13 +204,12 @@ class BW
 
       /////////////////////////////////////////////////////////////////
 
-      typedef matrix_polynomial<n, m+n, max((num_iter + 1) * 5/9, 100)> min_poly_t;
+      typedef matrix_polynomial<n, m+n, Mac::width/n + 50> min_poly_t;
 
       boost::scoped_ptr<min_poly_t> min_poly(new min_poly_t(*ai));
 
       if (options->bm_run)
          block_BM::block_bm(*min_poly, *ai);
-
 
       if ((options->bm == OP_BM_WRITE) && (mpi_rank == 0))
          bm_write(*z_sp, *min_poly, *ai);
@@ -227,6 +226,7 @@ class BW
 
       if (!options->bw3_run)
          throw BW_Exception("did not finish all steps for BW");
+
    }    
 
 };

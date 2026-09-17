@@ -165,9 +165,10 @@ class BW1 : BW1_base
 #pragma omp parallel for 
 #endif
            // transpose
-           for (unsigned k = 0; k < m; k++)
-              for (unsigned j = 0; j < n; j++)
+           for (unsigned k = 0; k < n; k++)
+              for (unsigned j = 0; j < m; j++)
                    ai[i].L[k].set(j, ai_tr->get(j, k));
+
            t_trans += get_ms_time();
        }
    
@@ -763,7 +764,7 @@ class BW1_two_blocks : BW1_base
 
 
             time_comp[id] -= get_ms_time();
-            memcpy(ai_tr[id].L, BiyNew[id]->L, sizeof(ai_tr[id].L[0]) * n);
+            memcpy(ai_tr[id].L, BiyNew[id]->L, sizeof(ai_tr[id].L[0]) * m);
             time_comp[id] += get_ms_time();
 
 
@@ -777,8 +778,8 @@ class BW1_two_blocks : BW1_base
                      ai[i].L[k].set(j, ai_tr[0].get(j, k));
                   else
                      ai[i].L[k + ai_tr[0].m].set(j, ai_tr[1].get(j, k));
-            time_comp[id] += get_ms_time();
 
+            time_comp[id] += get_ms_time();
 
             swap(BiyOld[id], BiyNew[id]);
 
@@ -941,7 +942,7 @@ class BW1_one_block : BW1_base
            for (h = 0; h < num_handle; h++)
                XL_Wait(&handle[h]);
    
-           memcpy(ai_tr->L, BiyNew->L, sizeof(ai_tr->L[0]) * n);
+           memcpy(ai_tr->L, BiyNew->L, sizeof(ai_tr->L[0]) * m);
    
            swap(BiyOld, BiyNew);
    
