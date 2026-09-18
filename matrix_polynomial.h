@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "util.h"
+
 template <unsigned m, unsigned n, unsigned deg_coef>
 class matrix_polynomial
 {
@@ -28,7 +30,7 @@ class matrix_polynomial
     template <unsigned deg_ai>
     matrix_polynomial(const matrix_array<n-m, m, deg_ai> &ai)
     {
-        max_nom_deg = ceil(((float)(n-m) + (float)m)/(float)m);
+        max_nom_deg = ceildiv(n-m, m) + 2;
 
 #ifdef OPEN_MPI
         unsigned all_num_coef[mpi_size];

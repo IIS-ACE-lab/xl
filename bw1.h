@@ -225,14 +225,14 @@ class BW1_mpi_size_blocks : BW1_base
        matrix<m, n_mpi> *ai_part;
 
        const unsigned chunk_size = 128;
-       const unsigned nchunks = ((num_iter+2 + (chunk_size-1))/chunk_size);
+       const unsigned nchunks = ceildiv(num_iter, chunk_size);
        ai_part = new matrix<m, n_mpi>[nchunks * chunk_size];
    
        double num_mults = 1;
    
-       for(unsigned i = 0; i < num_iter + 1; i++) 
+       for(unsigned i = 0; i < num_iter; i++) 
        {
-           show_speed_stats(i, num_iter + 2, num_mults, B.num_entries() * n * num_iter);
+           show_speed_stats(i, num_iter, num_mults, B.num_entries() * n * num_iter);
            num_mults += B.num_entries() * n;
    
            sparse_matrix_prod(*BiyNew, B, *BiyOld);
@@ -248,12 +248,19 @@ class BW1_mpi_size_blocks : BW1_base
    
            swap(BiyOld, BiyNew);
        }
-   
+
        show_speed_stats(1, 0, num_mults, num_mults, "BW1");   
-   
+
+       BiyOld->~matrix<n_mpi, N>();
+       BiyNew->~matrix<n_mpi, N>();
+
+       for (int i = 0; i < 2; i++)
+           XL_free(map[i], sizeof(matrix<n_mpi, N>));
+      
        MPI_Barrier(MPI_COMM_WORLD);
 
-       matrix<m, n_mpi> buf[MPI_SIZE][chunk_size];
+       matrix<m, n_mpi> (*buf)[chunk_size] = 
+      (matrix<m, n_mpi> (*   )[chunk_size]) malloc(MPI_SIZE * sizeof(*buf));
 
        for (unsigned i = 0; i < nchunks; i++)
        {
@@ -289,14 +296,8 @@ class BW1_mpi_size_blocks : BW1_base
          }
        }
 
-
-       BiyOld->~matrix<n_mpi, N>();
-       BiyNew->~matrix<n_mpi, N>();
-
-       for (int i = 0; i < 2; i++)
-           XL_free(map[i], sizeof(matrix<n_mpi, N>));
-   
-       delete [] ai_part;
+      free(buf); 
+      delete [] ai_part;
    
       return num_mults;
    }

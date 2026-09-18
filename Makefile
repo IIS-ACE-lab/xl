@@ -8,8 +8,8 @@ M = 12
 N = 10
 
 Q = 16
-M = 15
-N = 13
+M = 14
+N = 12
 
 ## no MPI:
 #BW1_ALGO = BW1
@@ -22,7 +22,7 @@ N = 13
 
 ## this one requires the number of MPI nodes to be specified at compile time
 BW1_ALGO = BW1_mpi_size_blocks
-MPI_SIZE = 2
+MPI_SIZE = 8
 
 D = $(shell sage ./get_D.sage -q $Q -m $M -n $N)
 

@@ -9,6 +9,7 @@
 #undef max
 #undef min
 
+#define ceildiv(a, b) ((a+b-1)/b)
 
 #ifdef OPEN_MPI
 
