@@ -6,6 +6,7 @@
 #endif
 
 #include <float.h>
+#include <unistd.h>
 
 #include "util.h"
 #include "matrix.h"
@@ -217,6 +218,8 @@ class BW1_mpi_size_blocks : BW1_base
        for(unsigned i = 0; i < m; i++)
            for(unsigned j = 0; j < n_mpi; j++)
                BiyOld->L[i].set(j, z_sp.L[i][mpi_rank*n_mpi + j]);
+
+       ::srand(getpid()); // each process should use its own randomness!
 
        for (unsigned r = m; r < N; r++)
          BiyOld->L[r].rand();   

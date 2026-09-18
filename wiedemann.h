@@ -172,7 +172,7 @@ class BW
       ECHO("dimension: %u\n", Mac::width);
       ECHO("weight/row: %.3lf\n", (double)M.num_entries()/Mac::width);
 
-      static const unsigned num_iter = Mac::width/m + Mac::width/n + 30;
+      static const unsigned num_iter = Mac::width/m + Mac::width/n + 8;
 
       typedef matrix<n, m> z_sp_t;
 

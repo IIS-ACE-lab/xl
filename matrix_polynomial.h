@@ -30,7 +30,7 @@ class matrix_polynomial
     template <unsigned deg_ai>
     matrix_polynomial(const matrix_array<n-m, m, deg_ai> &ai)
     {
-        max_nom_deg = ceildiv(n-m, m) + 2;
+        max_nom_deg = ceildiv(n-m, m);
 
 #ifdef OPEN_MPI
         unsigned all_num_coef[mpi_size];
