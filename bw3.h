@@ -113,7 +113,7 @@ class BW3_opt
    
        for (unsigned deg = minDeg; deg <= maxDeg; deg++)
        {
-          matrix_prod(tmp, min_poly[deg], Bz0);
+          matrix_prod(tmp, min_poly[deg], Bz0, 0, n);
    
           for (unsigned i = 0; i < deg; i++)
              matrix_mad(tmp, min_poly[deg - 1 - i], ai[i]);
