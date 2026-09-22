@@ -116,7 +116,7 @@ class BW3_opt
           matrix_prod(tmp, min_poly[deg], Bz0, 0, n);
    
           for (unsigned i = 0; i < deg; i++)
-             matrix_mad(tmp, min_poly[deg - 1 - i], ai[i]);
+             matrix_mad(tmp, min_poly[deg - 1 - i], ai[i], 0, n);
    
           for (unsigned i = 0; i < n; i++)
              if ((rowDeg[i] <= deg) and (deg <= min_poly.nom_deg[i]))
