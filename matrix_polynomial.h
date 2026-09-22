@@ -262,7 +262,7 @@ class matrix_polynomial
                 fta.L[i].set_zero();
 
             for (unsigned i = 0; i <= t0; i++)
-                matrix_mad(fta, coef[i], ai[t0-i]);
+                matrix_mad(fta, coef[i], ai[t0-i], 0, n-m);
 
             count++;
         }
