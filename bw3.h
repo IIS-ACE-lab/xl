@@ -111,42 +111,39 @@ class BW3_opt
    
        ECHO_NL();
    
-       for (unsigned deg = minDeg; deg <= maxDeg; deg++)
-       {
-          matrix_prod(tmp, min_poly[deg], Bz0, 0, n);
+       matrix_prod(tmp, min_poly[0], Bz0);
    
-          for (unsigned i = 0; i < deg; i++)
-             matrix_mad(tmp, min_poly[deg - 1 - i], ai[i]);
+       for (unsigned i = 0; i < maxDeg; i++)
+          matrix_mad(tmp, min_poly[i+1], ai[i]);
    
-          for (unsigned i = 0; i < n; i++)
-             if ((rowDeg[i] <= deg) and (deg <= min_poly.nom_deg[i]))
+       for (unsigned i = 0; i < n; i++)
+          {
+             gfv<num_var> sol_vec; sol_vec.set_zero();
+   
+             if (tmp.L[i][0] != 0)
              {
-                gfv<num_var> sol_vec; sol_vec.set_zero();
+                gf gf_tmp = tmp.L[i][0].inv();
    
-                if (tmp.L[i][0] != 0)
+                for (uint64_t j = num_var; j >= 1; j--)
+                   sol_vec.set(num_var - j, tmp.L[i][j] * gf_tmp);
+   
+                if (sol_check(sol_vec, sys))
                 {
-                   gf gf_tmp = tmp.L[i][0].inv();
-   
                    for (uint64_t j = num_var; j >= 1; j--)
-                      sol_vec.set(num_var - j, tmp.L[i][j] * gf_tmp);
+                      printf(GF_FMT " ", (tmp.L[i][j] * gf_tmp).v);
    
-                   if (sol_check(sol_vec, sys))
-                   {
-                      for (uint64_t j = num_var; j >= 1; j--)
-                         printf(GF_FMT " ", (tmp.L[i][j] * gf_tmp).v);
-   
-                      printf(" is sol\n");
+                   printf(" is sol\n");
    
    
-                      sol.L[num_sol++] = sol_vec;
+                   sol.L[num_sol++] = sol_vec;
    
-                      if (num_sol >= nsol)
-                         goto end;
-                   }
-   
+                   if (num_sol >= nsol)
+                      goto end;
                 }
+   
              }
-       }
+          }
+       
    
    end:
        t += get_ms_time();

@@ -169,6 +169,8 @@ class matrix_polynomial
 
             buf->set_zero();
 
+            int T = ai.deg - 1;
+
 #ifdef _OPENMP
             #pragma omp for
 #endif
@@ -183,7 +185,8 @@ class matrix_polynomial
 #else
             for (unsigned i = 0; i <= min(t_max, (max_nom_deg + 1)); i++)
 #endif
-               matrix_mad_special(*buf, coef[i], ai[t_max-i].L, m);
+               //matrix_mad_special(*buf, coef[i], ai[t_max-i].L, m);
+               matrix_mad_special(*buf, coef[i], ai[T-(t_max-i)].L, m);
 
 #ifdef _OPENMP
             #pragma omp critical
@@ -250,6 +253,8 @@ class matrix_polynomial
             for (unsigned j = (n-m); j < n; j++)
                 coef[i].L[j].set_zero();
 
+        int T = ai.deg - 1;
+
         do
         {
             assert(count <= 100);
@@ -262,7 +267,8 @@ class matrix_polynomial
                 fta.L[i].set_zero();
 
             for (unsigned i = 0; i <= t0; i++)
-                matrix_mad(fta, coef[i], ai[t0-i]);
+                //matrix_mad(fta, coef[i], ai[t0-i]);
+                matrix_mad(fta, coef[i], ai[T-(t0-i)]);
 
             count++;
         }
@@ -270,7 +276,8 @@ class matrix_polynomial
 
         // pre-compute the lower part
         for (unsigned i = 0; i < m; i++)
-            fta.L[(n-m) + i] = ai[0].L[i];
+            //fta.L[(n-m) + i] = ai[o].L[i];
+            fta.L[(n-m) + i] = ai[T].L[i];
     }
 
     // generate information of Tau matrix

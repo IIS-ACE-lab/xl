@@ -56,6 +56,7 @@ class block_BM
           // ---------------------------------------------------
        }
    
+       min_poly.update(); // needed?
        min_poly.allgather();
    
        double total_time = get_ms_time() - start_time;
